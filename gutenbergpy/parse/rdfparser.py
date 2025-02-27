@@ -1,15 +1,15 @@
-from os   import listdir
-from os   import path
+from os import path, listdir
+
 from lxml import etree
 
-from gutenbergpy.parse.cachefields      import Fields
-from gutenbergpy.parse.book             import Book
-from gutenbergpy.parse.parseitem        import ParseItem
-from gutenbergpy.parse.parseitemfile    import ParseItemFiles
-from gutenbergpy.parse.parseitemtitles  import ParseItemTitles
-from gutenbergpy.parse.rdfparseresults  import RDFParseResults
 from gutenbergpy.gutenbergcachesettings import GutenbergCacheSettings
-from gutenbergpy.utils                  import Utils
+from gutenbergpy.parse.book import Book
+from gutenbergpy.parse.cachefields import Fields
+from gutenbergpy.parse.parseitem import ParseItem
+from gutenbergpy.parse.parseitemfile import ParseItemFiles
+from gutenbergpy.parse.parseitemtitles import ParseItemTitles
+from gutenbergpy.parse.rdfparseresults import RDFParseResults
+from gutenbergpy.utils import Utils
 
 
 ##
