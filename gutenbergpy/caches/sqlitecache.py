@@ -1,11 +1,10 @@
-from gutenbergpy.gutenbergcachesettings import GutenbergCacheSettings
-from gutenbergpy.caches.cache import Cache
-from gutenbergpy.utils import Utils
-from gutenbergpy.parse.cachefields import Fields
-from gutenbergpy.gutenbergcachesettings import GutenbergCacheSettings
-
-import sqlite3
 import os
+import sqlite3
+
+from gutenbergpy.caches.cache import Cache
+from gutenbergpy.gutenbergcachesettings import GutenbergCacheSettings
+from gutenbergpy.parse.cachefields import Fields
+from gutenbergpy.utils import Utils
 
 
 ##

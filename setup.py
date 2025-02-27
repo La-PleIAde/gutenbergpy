@@ -1,6 +1,3 @@
-from os.path import isfile
-from sys import version_info
-
 from setuptools import find_packages
 from setuptools import setup
 

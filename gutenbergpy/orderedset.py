@@ -2,7 +2,6 @@
 SLICE_ALL = slice(None)
 __version__ = '2.0.1'
 
-import collections
 try:
     from collections.abc import MutableSet
 except:
