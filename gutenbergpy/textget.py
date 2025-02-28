@@ -7,6 +7,8 @@ import os
 import errno
 import http.client
 from contextlib import closing
+from typing import Union
+
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.request import urlopen
@@ -111,15 +113,16 @@ LEGALESE_END_MARKERS = frozenset(("SERVICE THAT CHARGES FOR DOWNLOAD",))
 
 ##
 # adapted from https://github.com/c-w/Gutenberg/blob/master/gutenberg/acquire/text.py
-def get_text_dir_from_index(index):
+def get_text_dir_from_index(index: int) -> str:
     return f"files/{index}"
 
 
 ##
 # adapted from https://github.com/c-w/Gutenberg/blob/master/gutenberg/acquire/text.py
-def _format_download_uri(index):
-    """Returns the download location on the Project Gutenberg servers for a
-    given text.
+def _format_download_uri(index: int) -> str:
+    """
+    Returns the download location on the Project Gutenberg servers for a given text.
+
     Raises:
         UnknownDownloadUri: If no download location can be found for the text.
     """
@@ -143,7 +146,28 @@ def _format_download_uri(index):
 
 ##
 # adapted from https://github.com/c-w/Gutenberg/blob/master/gutenberg/acquire/text.py
-def get_text_by_id(index):
+def get_text_by_id(index: int, return_bytes: bool = True) -> Union[str, bytes]:
+    """
+    Retrieve the text of a book from the Gutenberg project by its numerical ID.
+
+    This function checks if the text is cached locally in a compressed format.
+    If not, it downloads the text from the Project Gutenberg servers, detects its
+    encoding, decodes it to a string, and stores it in a local cache for future use.
+
+    Args:
+        index (int): The unique Gutenberg ID of the book.
+        return_bytes (bool, optional): If True, returns the text as bytes;
+                                       otherwise, returns a string. Defaults to True.
+
+    Returns:
+        Union[str, bytes]: The full text of the book, either as a string or bytes,
+        depending on the value of `return_bytes`.
+
+    Raises:
+        OSError: If there is an issue creating the cache directory.
+        URLError: If downloading the text fails.
+        UnicodeDecodeError: If the text encoding detection or decoding fails.
+    """
     file_cache_location = os.path.join(GutenbergCacheSettings.TEXT_FILES_CACHE_FOLDER, str(index)+'.txt.gz')
     if not os.path.exists(file_cache_location):
         try:
@@ -153,21 +177,43 @@ def get_text_by_id(index):
                 raise
         download_uri = _format_download_uri(index)
 
-        text_bytes = urlopen(download_uri).read()
-        encoding = chardet.detect(text_bytes)["encoding"]
-        text = text_bytes.decode(encoding)
+        text_bytes: bytes = urlopen(download_uri).read()
+        encoding: str = chardet.detect(text_bytes)["encoding"]
+        text: str = text_bytes.decode(encoding)
 
         with closing(gzip.open(file_cache_location, 'w')) as cache:
             cache.write(text.encode('utf-8'))
 
     with closing(gzip.open(file_cache_location, 'r')) as cache:
         text = cache.read().decode('utf-8')
-    return text.encode('utf-8')
+    return text.encode('utf-8') if return_bytes else text
 
 
 ##
 # this function is 100% from https://github.com/c-w/Gutenberg/blob/master/gutenberg/cleanup/strip_headers.py
-def strip_headers(text):
+def strip_headers(text: Union[str, bytes], return_bytes: bool = True) -> Union[str, bytes]:
+    """
+    Removes Project Gutenberg header and footer lines from the given text.
+
+    This function attempts to strip out the standard header and footer markers
+    used in Project Gutenberg texts, preserving only the main body of the work.
+    It also removes legalese sections, such as licensing information, when detected.
+
+    Args:
+        text (Union[str, bytes]): The input text as a string or byte sequence.
+        return_bytes (bool, optional): If True, returns the cleaned text as bytes;
+                                       otherwise, returns a string. Defaults to True.
+
+    Returns:
+        Union[str, bytes]: The cleaned text with headers and footers removed.
+
+    Notes:
+        - The function identifies headers within the first 600 lines and footers after the first 100 lines.
+        - It also removes legalese sections that start and end with predefined markers.
+    """
+    if isinstance(text, str):
+        text = text.encode('utf-8')
+
     lines = text.splitlines()
     sep = os.linesep
     sep = sep.encode('utf-8')
@@ -212,4 +258,5 @@ def strip_headers(text):
             out.append(stripline)
             i += 1
 
-    return sep.join(out)
+    result = sep.join(out)
+    return result if return_bytes else result.decode('utf-8')
